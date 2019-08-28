@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <link rel="stylesheet" href="../css/myPlugins.css">
+    <script src="../js/jquery-3.2.1.min.js"></script>
+    <script src="../js/myPlugins.js"></script>
+    <script src="../js/lodash.js"></script>
+    <title>Title</title>
+    <style>
+
+    </style>
+
+</head>
+<body>
+<div>
+    <button>获取数据</button>
+    <button>上传图片</button>
+    <button>提交base64</button>
+    <button>删除数据</button>
+    <button>获取分数数据</button>
+    <button>登录</button>
+    <button>退出登录</button>
+    <input multiple id="file" type="file">
+    <div id="thb"></div>
+    <button id="get64">获取base64</button>
+</div>
+</body>
+<script>
+    var base64 = ''
+    var thb = new Thumbnail(document.querySelector("#thb"), {
+        onlyImg: false,
+        thumbnailClass: 'thbClass', //每个缩略图的样式
+        thbImgEleClass: 'img',
+        imgFullMode: false,
+    });
+
+    $("#get64").click(function () {
+        var b64 = thb.filesIfon[0].base64
+        base64 = b64.slice(b64.indexOf(',') + 1);
+        console.log(base64)
+    });
+
+    $("div button").click(function () {
+        var idx = $(this).index();
+        if (idx == 0) {
+            a('users/selectUser', {token: localStorage.getItem("token")})
+        } else if (idx == 1) {
+            upload('upload/files')
+        } else if (idx == 2) {
+            a('upload/base64', {
+                token: localStorage.getItem("token"),
+                base64:base64
+            })
+        } else if (idx == 3) {
+            a('users/deleteUser')
+        } else if (idx == 4) {
+            a('score/select')
+        } else if (idx == 5) {
+            a('login/verLogin', {username: 3, password: 3})
+        } else if (idx == 6) {
+            a('login/exit', {token: localStorage.getItem("token")});
+        }
+    });
+
+    function a(l, data) {
+        data = data ? data : '';
+        $.ajax({
+            url: 'http://localhost:3001/' + l,
+            type: 'post',
+            dataType: 'json',
+            data: data,
+        }).done(function (res) {
+            console.log(res);
+            if (res.token) {
+                localStorage.setItem("token", res.token);
+            }
+        }).fail(function (res) {
+            console.log(res)
+        })
+    }
+
+    function upload(l) {
+        var data = new FormData();
+        var files = $('#file')[0].files;
+        if (files) {
+            for (var i = 0; i < files.length; i++) {
+                data.append('file', files[i]);
+            }
+            data.append('token', localStorage.getItem('token'))
+        }
+        $.ajax({
+            url: 'http://localhost:3001/' + l,
+            type: 'post',
+            dataType: 'json',
+            data: data,
+            contentType: false,
+            processData: false,
+        }).done(function (res) {
+            console.log(res);
+        }).fail(function (res) {
+            console.log(res)
+        })
+    }
+</script>
+</html>
